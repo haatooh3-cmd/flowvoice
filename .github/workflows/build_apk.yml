@@ -37,7 +37,7 @@ jobs:
         run: |
           flutter create . --platforms=android --org com.flowvoice.app
 
-      - name: Restore original pubspec.yaml & Add dependencies
+      - name: Restore original pubspec.yaml and Add dependencies
         run: |
           if [ -f pubspec.yaml.bak ]; then
             cp pubspec.yaml.bak pubspec.yaml
@@ -46,39 +46,13 @@ jobs:
 
       - name: Configure Android permissions and Gradle
         run: |
-          # Set minSdk to 21 and debug signing for release build
           sed -i 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
           sed -i 's/minSdk = .*/minSdk = 21/g' android/app/build.gradle || true
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
-          # Inject permissions into AndroidManifest.xml
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          python3 -c "
-path = '$MANIFEST'
-with open(path, 'r', encoding='utf-8') as f:
-    content = f.read()
-
-permissions = '''
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-'''
-
-service = '''
-        <service android:name="flutter.overlay.window.flutter_overlay_window.OverlayService" android:exported="false"/>
-'''
-
-if '<uses-permission' not in content:
-    content = content.replace('<manifest', '<manifest' + permissions)
-
-if '</application>' in content and 'OverlayService' not in content:
-    content = content.replace('</application>', service + '
-    </application>')
-
-with open(path, 'w', encoding='utf-8') as f:
-    f.write(content)
-"
+      - name: Inject Android permissions
+        run: |
+          python3 -c "import os; p='android/app/src/main/AndroidManifest.xml'; c=open(p).read(); perms='<uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.RECORD_AUDIO"/><uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/><uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>'; open(p,'w').write(c.replace('<manifest', '<manifest>'+perms)) if '<uses-permission' not in c else None"
 
       - name: Get dependencies
         run: flutter pub get
