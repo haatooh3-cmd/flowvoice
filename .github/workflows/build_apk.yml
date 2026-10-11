@@ -44,7 +44,7 @@ jobs:
           fi
           flutter pub add http shared_preferences flutter_overlay_window record path_provider cupertino_icons
 
-      - name: Configure Android SDK 34 & Gradle permissions
+      - name: Configure Android SDK 34, Disable Shrinker & Gradle permissions
         run: |
           sed -i 's/compileSdkVersion .*/compileSdkVersion 34/g' android/app/build.gradle || true
           sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle || true
@@ -52,15 +52,17 @@ jobs:
           sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion .*/minSdkVersion 23/g' android/app/build.gradle || true
           sed -i 's/minSdk = .*/minSdk = 23/g' android/app/build.gradle || true
+          sed -i 's/minifyEnabled .*/minifyEnabled false/g' android/app/build.gradle || true
+          sed -i 's/shrinkResources .*/shrinkResources false/g' android/app/build.gradle || true
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
-          python3 -c "import base64, os; path='android/app/src/main/AndroidManifest.xml'; code=base64.b64decode('aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGMgPSBmLnJlYWQoKQogICAgcCA9ICc8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+XG4gICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5SRUNPUkRfQVVESU8iLz5cbiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlNZU1RFTV9BTEVSVF9XSU5ET1ciLz5cbiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPlxuJwogICAgcyA9ICcgICAgICAgIDxzZXJ2aWNlIGFuZHJvaWQ6bmFtZT0iZmx1dHRlci5vdmVybGF5LndpbmRvdy5mbHV0dGVyX292ZXJsYXlfd2luZG93Lk92ZXJsYXlTZXJ2aWNlIiBhbmRyb2lkOmV4cG9ydGVkPSJmYWxzZSIvPlxuJwogICAgaWYgIlNZU1RFTV9BTEVSVF9XSU5ET1ciIG5vdCBpbiBjOgogICAgICAgIGMgPSBjLnJlcGxhY2UoIjxhcHBsaWNhdGlvbiIsIHAgKyAiICAgIDxhcHBsaWNhdGlvbiIpCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGMgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGM6CiAgICAgICAgYyA9IGMucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzICsgIiAgICA8L2FwcGxpY2F0aW9uPiIpCiAgICB3aXRoIG9wZW4ocGF0aCwgInciLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGYud3JpdGUoYyk=').decode('utf-8'); exec(code)"
+          python3 -c "import base64, os; path='android/app/src/main/AndroidManifest.xml'; code=base64.b64decode('aW1wb3J0IG9zCnBhdGggPSAnYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCcKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgJ3InLCBlbmNvZGluZz0ndXRmLTgnKSBhcyBmOgogICAgICAgIGMgPSBmLnJlYWQoKQogICAgcCA9ICc8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlJFQ09SRF9BVURJTyIvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5TWVNURU1fQUxFUlRfV0lORE9XIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPgonCiAgICBzID0gJyAgICAgICAgPHNlcnZpY2UgYW5kcm9pZDpuYW1lPSJmbHV0dGVyLm92ZXJsYXkud2luZG93LmZsdXR0ZXJfb3ZlcmxheV93aW5kb3cuT3ZlcmxheVNlcnZpY2UiIGFuZHJvaWQ6ZXhwb3J0ZWQ9ImZhbHNlIi8+CicKICAgIGlmICdTWVNURU1fQUxFUlRfV0lORE9XJyBub3QgaW4gYzoKICAgICAgICBjID0gYy5yZXBsYWNlKCc8YXBwbGljYXRpb24nLCBwICsgJyAgICA8YXBwbGljYXRpb24nKQogICAgaWYgJzwvYXBwbGljYXRpb24+JyBpbiBjIGFuZCAnT3ZlcmxheVNlcnZpY2UnIG5vdCBpbiBjOgogICAgICAgIGMgPSBjLnJlcGxhY2UoJzwvYXBwbGljYXRpb24+JywgcyArICcgICAgPC9hcHBsaWNhdGlvbj4nKQogICAgd2l0aCBvcGVuKHBhdGgsICd3JywgZW5jb2Rpbmc9J3V0Zi04JykgYXMgZjoKICAgICAgICBmLndyaXRlKGMpCg==').decode('utf-8'); exec(code)"
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-shrink
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
