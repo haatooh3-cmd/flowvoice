@@ -29,9 +29,20 @@ jobs:
         run: |
           rm -f main.dart
 
+      - name: Backup original pubspec.yaml
+        run: |
+          cp pubspec.yaml pubspec.yaml.bak || true
+
       - name: Generate Android Project Files
         run: |
           flutter create . --platforms=android --org com.flowvoice.app
+
+      - name: Restore original pubspec.yaml & Add dependencies
+        run: |
+          if [ -f pubspec.yaml.bak ]; then
+            cp pubspec.yaml.bak pubspec.yaml
+          fi
+          flutter pub add http speech_to_text shared_preferences flutter_overlay_window cupertino_icons
 
       - name: Configure Android permissions and Gradle
         run: |
@@ -48,21 +59,22 @@ with open(path, 'r', encoding='utf-8') as f:
     content = f.read()
 
 permissions = '''
-    <uses-permission android:name=\"android.permission.INTERNET\"/>
-    <uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>
-    <uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>
-    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 '''
 
 service = '''
-        <service android:name=\"flutter.overlay.window.flutter_overlay_window.OverlayService\" android:exported=\"false\"/>
+        <service android:name="flutter.overlay.window.flutter_overlay_window.OverlayService" android:exported="false"/>
 '''
 
 if '<uses-permission' not in content:
     content = content.replace('<manifest', '<manifest' + permissions)
 
 if '</application>' in content and 'OverlayService' not in content:
-    content = content.replace('</application>', service + '\n    </application>')
+    content = content.replace('</application>', service + '
+    </application>')
 
 with open(path, 'w', encoding='utf-8') as f:
     f.write(content)
