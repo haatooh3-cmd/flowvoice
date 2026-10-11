@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
         overlayContent: '터치하여 음성 입력 시작/종료',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
-        positionGravity: PositionGravity.auto,
+        positionGravity: PositionGravity.none,
         height: 140,
         width: 140,
       );
