@@ -50,7 +50,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _apiKeyController = TextEditingController();
   bool _isOverlayActive = false;
-  String _statusMessage = 'Groq API 키 입력 시 초고속 Whisper AI 변환이 구동됩니다.\n미입력 시 갤럭시 내장 오프라인 음성인식으로 자동 동작합니다.';
+  String _statusMessage = 'Groq API 키를 설정하면 초고속 Whisper 변환이 활성화됩니다.';
 
   @override
   void initState() {
@@ -67,11 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _saveApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('groq_api_key', _apiKeyController.text.trim());
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Groq API 키가 저장되었습니다!')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Groq API 키가 안전하게 저장되었습니다!')),
+    );
   }
 
   Future<void> _toggleOverlay() async {
@@ -99,13 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
         overlayContent: '터치하여 음성 입력 시작/종료',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
-        positionGravity: PositionGravity.rightBottom,
+        positionGravity: PositionGravity.auto,
         height: 140,
         width: 140,
       );
       setState(() {
         _isOverlayActive = true;
-        _statusMessage = '🎙️ 화면 구석에 플로팅 마이크가 켜졌습니다! 카톡/메모장에서 누르세요.';
+        _statusMessage = '🎙️ 화면 구석에 플로팅 마이크가 켜졌습니다!';
       });
     }
   }
@@ -123,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '🔑 Groq Whisper API 키 (선택 사항 / 무료)',
+              '🔑 Groq Whisper API 키 (무료)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
             ),
             const SizedBox(height: 8),
@@ -131,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _apiKeyController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'gsk_... (없으면 내장 엔진으로 동작)',
+                hintText: 'Groq API Key (gsk_...)',
                 filled: true,
                 fillColor: const Color(0xFF282C34),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -141,36 +139,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 55,
+              height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isOverlayActive ? const Color(0xFFE06C75) : const Color(0xFF98C379),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: Icon(_isOverlayActive ? Icons.stop : Icons.mic, color: Colors.black, size: 28),
+                icon: Icon(_isOverlayActive ? Icons.stop : Icons.mic, color: Colors.black),
                 label: Text(
                   _isOverlayActive ? '플로팅 마이크 끄기' : '화면에 플로팅 마이크 켜기',
-                  style: const TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 onPressed: _toggleOverlay,
               ),
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF282C34),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF3B4048)),
-              ),
-              child: Text(
-                _statusMessage,
-                style: const TextStyle(color: Color(0xFFABB2BF), height: 1.4),
-              ),
-            ),
+            const SizedBox(height: 15),
+            Text(_statusMessage, style: const TextStyle(color: Color(0xFFABB2BF))),
           ],
         ),
       ),
@@ -227,21 +213,14 @@ class _FloatingMicWidgetState extends State<FloatingMicWidget> {
     return GestureDetector(
       onTap: _handleMicClick,
       child: Container(
-        width: 65,
-        height: 65,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           color: _isRecording ? const Color(0xFFE06C75) : const Color(0xFF98C379),
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            )
-          ],
-          border: Border.all(color: Colors.white, width: 2.5),
+          border: Border.all(color: Colors.white, width: 2),
         ),
-        child: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.black, size: 32),
+        child: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.black, size: 30),
       ),
     );
   }
