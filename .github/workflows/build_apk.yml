@@ -50,8 +50,8 @@ jobs:
           sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle || true
           sed -i 's/targetSdkVersion .*/targetSdkVersion 34/g' android/app/build.gradle || true
           sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle || true
-          sed -i 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
-          sed -i 's/minSdk = .*/minSdk = 21/g' android/app/build.gradle || true
+          sed -i 's/minSdkVersion .*/minSdkVersion 23/g' android/app/build.gradle || true
+          sed -i 's/minSdk = .*/minSdk = 23/g' android/app/build.gradle || true
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
           python3 -c "import base64, os; path='android/app/src/main/AndroidManifest.xml'; code=base64.b64decode('aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGMgPSBmLnJlYWQoKQogICAgcCA9ICc8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+XG4gICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5SRUNPUkRfQVVESU8iLz5cbiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlNZU1RFTV9BTEVSVF9XSU5ET1ciLz5cbiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPlxuJwogICAgcyA9ICcgICAgICAgIDxzZXJ2aWNlIGFuZHJvaWQ6bmFtZT0iZmx1dHRlci5vdmVybGF5LndpbmRvdy5mbHV0dGVyX292ZXJsYXlfd2luZG93Lk92ZXJsYXlTZXJ2aWNlIiBhbmRyb2lkOmV4cG9ydGVkPSJmYWxzZSIvPlxuJwogICAgaWYgIlNZU1RFTV9BTEVSVF9XSU5ET1ciIG5vdCBpbiBjOgogICAgICAgIGMgPSBjLnJlcGxhY2UoIjxhcHBsaWNhdGlvbiIsIHAgKyAiICAgIDxhcHBsaWNhdGlvbiIpCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGMgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGM6CiAgICAgICAgYyA9IGMucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzICsgIiAgICA8L2FwcGxpY2F0aW9uPiIpCiAgICB3aXRoIG9wZW4ocGF0aCwgInciLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGYud3JpdGUoYyk=').decode('utf-8'); exec(code)"
