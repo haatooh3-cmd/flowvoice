@@ -32,8 +32,8 @@ jobs:
       - name: Fix Dart code bugs automatically
         run: |
           if [ -f lib/main.dart ]; then
-            sed -i 's/PositionGravity.rightBottom/PositionGravity.auto/g' lib/main.dart
-            sed -i 's/PositionGravity.rightBottom/PositionGravity.right/g' lib/main.dart
+            sed -i 's/PositionGravity.rightBottom/PositionGravity.none/g' lib/main.dart
+            sed -i 's/PositionGravity.auto/PositionGravity.none/g' lib/main.dart
           fi
 
       - name: Backup original pubspec.yaml
@@ -63,7 +63,7 @@ jobs:
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
           # Inject permissions into AndroidManifest.xml safely
-          echo "aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGNvbnRlbnQgPSBmLnJlYWQoKQoKICAgIHBlcm1pc3Npb25zID0gJycnCiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlJFQ09SRF9BVURJTyIvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5TWVNURU1fQUxFUlRfV0lORE9XIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPgonJycKICAgIHNlcnZpY2UgPSAnJycKICAgICAgICA8c2VydmljZSBhbmRyb2lkOm5hbWU9ImZsdXR0ZXIub3ZlcmxheS53aW5kb3cuZmx1dHRlcl9vdmVybGF5X3dpbmRvdy5PdmVybGF5U2VydmljZSIgYW5kcm9pZDpleHBvcnRlZD0iZmFsc2UiLz4KJycnCiAgICBpZiAiPHVzZXMtcGVybWlzc2lvbiIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPG1hbmlmZXN0IiwgIjxtYW5pZmVzdCIgKyBwZXJtaXNzaW9ucykKCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGNvbnRlbnQgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzZXJ2aWNlICsgIlxuICAgIDwvYXBwbGljYXRpb24+IikKCiAgICB3aXRoIG9wZW4ocGF0aCwgInciLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGYud3JpdGUoY29udGVudCkK" | base64 -d | python3 -
+          echo "aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGNvbnRlbnQgPSBmLnJlYWQoKQoKICAgIHBlcm1pc3Npb25zID0gJycnCiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlJFQ09SRF9BVURJTyIvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5TWVNURU1fQUxFUlRfV0lORE9XIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPgonJycKICAgIHNlcnZpY2UgPSAnJycKICAgICAgICA8c2VydmljZSBhbmRyb2lkOm5hbWU9ImZsdXR0ZXIub3ZlcmxheS53aW5kb3cuZmx1dHRlcl9vdmVybGF5X3dpbmRvdy5PdmVybGF5U2VydmljZSIgYW5kcm9pZDpleHBvcnRlZD0iZmFsc2UiLz4KJycnCiAgICBpZiAiPHVzZXMtcGVybWlzc2lvbiIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPG1hbmlmZXN0IiwgIjxtYW5pZmVzdCIgKyBwZXJtaXNzaW9ucykKCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGNvbnRlbnQgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzZXJ2aWNlICsgIgogICAgPC9hcHBsaWNhdGlvbj4iKQoKICAgIHdpdGggb3BlbihwYXRoLCAidyIsIGVuY29kaW5nPSJ1dGYtOCIpIGFzIGY6CiAgICAgICAgZi53cml0ZShjb250ZW50KQo=" | base64 -d | python3 -
 
       - name: Get dependencies
         run: flutter pub get
