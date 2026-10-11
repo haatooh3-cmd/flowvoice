@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +52,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _apiKeyController = TextEditingController();
   bool _isOverlayActive = false;
-  String _statusMessage = 'Groq API 키를 설정하면 초고속 Whisper 변환이 활성화됩니다.';
+  String _statusMessage = 'Groq API Key status';
 
   @override
   void initState() {
@@ -67,9 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _saveApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('groq_api_key', _apiKeyController.text.trim());
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Groq API 키가 안전하게 저장되었습니다!')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved!')),
+      );
+    }
   }
 
   Future<void> _toggleOverlay() async {
@@ -78,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final bool? requested = await FlutterOverlayWindow.requestPermission();
       if (requested != true) {
         setState(() {
-          _statusMessage = '❌ 다른 앱 위에 그리기 권한을 허용해 주세요.';
+          _statusMessage = 'Permission Denied';
         });
         return;
       }
@@ -88,13 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
       await FlutterOverlayWindow.closeOverlay();
       setState(() {
         _isOverlayActive = false;
-        _statusMessage = '⚪ 플로팅 마이크가 꺼졌습니다.';
+        _statusMessage = 'Overlay Closed';
       });
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice 음성 타자기',
-        overlayContent: '터치하여 음성 입력 시작/종료',
+        overlayTitle: 'FlowVoice',
+        overlayContent: 'Touch to record',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
         positionGravity: PositionGravity.none,
@@ -103,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       setState(() {
         _isOverlayActive = true;
-        _statusMessage = '🎙️ 화면 구석에 플로팅 마이크가 켜졌습니다!';
+        _statusMessage = 'Overlay Active';
       });
     }
   }
@@ -112,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎙️ FlowVoice 모바일 음성 타자기'),
+        title: const Text('FlowVoice Mobile'),
         backgroundColor: const Color(0xFF21252B),
       ),
       body: Padding(
@@ -121,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '🔑 Groq Whisper API 키 (무료)',
+              'Groq Whisper API Key',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
             ),
             const SizedBox(height: 8),
@@ -129,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _apiKeyController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Groq API Key (gsk_...)',
+                hintText: 'Groq API Key',
                 filled: true,
                 fillColor: const Color(0xFF282C34),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -149,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 icon: Icon(_isOverlayActive ? Icons.stop : Icons.mic, color: Colors.black),
                 label: Text(
-                  _isOverlayActive ? '플로팅 마이크 끄기' : '화면에 플로팅 마이크 켜기',
+                  _isOverlayActive ? 'Disable Overlay' : 'Enable Overlay',
                   style: const TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 onPressed: _toggleOverlay,
@@ -173,54 +177,107 @@ class FloatingMicWidget extends StatefulWidget {
 
 class _FloatingMicWidgetState extends State<FloatingMicWidget> {
   bool _isRecording = false;
-  late stt.SpeechToText _speech;
-
-  @override
-  void initState() {
-    super.initState();
-    _speech = stt.SpeechToText();
-  }
+  bool _isProcessing = false;
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  String? _audioPath;
 
   Future<void> _handleMicClick() async {
+    if (_isProcessing) return;
+
     if (!_isRecording) {
-      setState(() => _isRecording = true);
-      bool available = await _speech.initialize();
-      if (available) {
-        _speech.listen(
-          onResult: (val) {
-            if (val.finalResult) {
-              _finishSTT(val.recognizedWords);
-            }
-          },
-          localeId: 'ko_KR',
+      if (await _audioRecorder.hasPermission()) {
+        final Directory tempDir = await getTemporaryDirectory();
+        _audioPath = '${tempDir.path}/flowvoice_temp.m4a';
+
+        await _audioRecorder.start(
+          const RecordConfig(encoder: AudioEncoder.aacLc, sampleRate: 16000),
+          path: _audioPath!,
         );
+
+        setState(() {
+          _isRecording = true;
+        });
       }
     } else {
-      setState(() => _isRecording = false);
-      await _speech.stop();
+      setState(() {
+        _isRecording = false;
+        _isProcessing = true;
+      });
+
+      final String? path = await _audioRecorder.stop();
+
+      if (path != null && File(path).existsSync()) {
+        await _transcribeWithGroq(path);
+      }
+
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 
-  Future<void> _finishSTT(String text) async {
-    if (text.trim().isNotEmpty) {
-      await Clipboard.setData(ClipboardData(text: text));
-    }
-    setState(() => _isRecording = false);
+  Future<void> _transcribeWithGroq(String path) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String apiKey = prefs.getString('groq_api_key') ?? '';
+
+      if (apiKey.isEmpty) return;
+      final url = h("68747470733a2f2f6170692e67726f712e636f6d2f6f70656e61692f76312f617564696f2f7472616e736372697074696f6e73");
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers['Authorization'] = 'Bearer ' + apiKey;
+      request.fields['model'] = 'whisper-large-v3-turbo';
+      request.fields['language'] = 'ko';
+      request.files.add(await http.MultipartFile.fromPath('file', path));
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await http.Response.fromStream(response);
+        final jsonResponse = jsonDecode(responseBody.body);
+        final String text = jsonResponse['text'] ?? '';
+
+        if (text.trim().isNotEmpty) {
+          await Clipboard.setData(ClipboardData(text: text.trim()));
+        }
+      }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
+    Color btnColor = const Color(0xFF98C379);
+    Widget iconWidget = const Icon(Icons.mic, color: Colors.black, size: 30);
+
+    if (_isProcessing) {
+      btnColor = const Color(0xFF61AFEF);
+      iconWidget = const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+      );
+    } else if (_isRecording) {
+      btnColor = const Color(0xFFE06C75);
+      iconWidget = const Icon(Icons.stop, color: Colors.white, size: 30);
+    }
+
     return GestureDetector(
       onTap: _handleMicClick,
       child: Container(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: _isRecording ? const Color(0xFFE06C75) : const Color(0xFF98C379),
+          color: btnColor,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 8,
+              spreadRadius: 2,
+            )
+          ],
         ),
-        child: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.black, size: 30),
+        child: Center(child: iconWidget),
       ),
     );
   }
