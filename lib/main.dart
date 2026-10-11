@@ -52,7 +52,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _apiKeyController = TextEditingController();
   bool _isOverlayActive = false;
-  String _statusMessage = 'Groq API Key status';
+  String _statusMessage = 'Groq API 키를 입력하면 초고속 Whisper 변환이 활성화됩니다.';
 
   @override
   void initState() {
@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setString('groq_api_key', _apiKeyController.text.trim());
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saved!')),
+        const SnackBar(content: Text('✅ Groq API 키가 성공적으로 저장되었습니다!')),
       );
     }
   }
@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final bool? requested = await FlutterOverlayWindow.requestPermission();
       if (requested != true) {
         setState(() {
-          _statusMessage = 'Permission Denied';
+          _statusMessage = '❌ 다른 앱 위에 그리기 권한을 허용해 주세요.';
         });
         return;
       }
@@ -92,13 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
       await FlutterOverlayWindow.closeOverlay();
       setState(() {
         _isOverlayActive = false;
-        _statusMessage = 'Overlay Closed';
+        _statusMessage = '⚪ 플로팅 마이크가 꺼졌습니다.';
       });
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice',
-        overlayContent: 'Touch to record',
+        overlayTitle: 'FlowVoice 음성 타자기',
+        overlayContent: '터치하여 음성 입력 시작/종료',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
         positionGravity: PositionGravity.none,
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       setState(() {
         _isOverlayActive = true;
-        _statusMessage = 'Overlay Active';
+        _statusMessage = '🎙️ 화면 구석에 플로팅 마이크가 켜졌습니다!';
       });
     }
   }
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile'),
+        title: const Text('🎙️ FlowVoice 모바일 음성 타자기'),
         backgroundColor: const Color(0xFF21252B),
       ),
       body: Padding(
@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Groq Whisper API Key',
+              '🔑 Groq Whisper API 키 (무료)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
             ),
             const SizedBox(height: 8),
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 icon: Icon(_isOverlayActive ? Icons.stop : Icons.mic, color: Colors.black),
                 label: Text(
-                  _isOverlayActive ? 'Disable Overlay' : 'Enable Overlay',
+                  _isOverlayActive ? '플로팅 마이크 끄기' : '화면에 플로팅 마이크 켜기',
                   style: const TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 onPressed: _toggleOverlay,
@@ -180,6 +180,14 @@ class _FloatingMicWidgetState extends State<FloatingMicWidget> {
   bool _isProcessing = false;
   final AudioRecorder _audioRecorder = AudioRecorder();
   String? _audioPath;
+
+  String decodeUrl(String hex) {
+    List<int> bytes = [];
+    for (int i = 0; i < hex.length; i += 2) {
+      bytes.add(int.parse(hex.substring(i, i + 2), radix: 16));
+    }
+    return utf8.decode(bytes);
+  }
 
   Future<void> _handleMicClick() async {
     if (_isProcessing) return;
@@ -222,7 +230,7 @@ class _FloatingMicWidgetState extends State<FloatingMicWidget> {
       final String apiKey = prefs.getString('groq_api_key') ?? '';
 
       if (apiKey.isEmpty) return;
-      final url = h("68747470733a2f2f6170692e67726f712e636f6d2f6f70656e61692f76312f617564696f2f7472616e736372697074696f6e73");
+      final url = decodeUrl('68747470733a2f2f6170692e67726f712e636f6d2f6f70656e61692f76312f617564696f2f7472616e736372697074696f6e73');
       final request = http.MultipartRequest('POST', Uri.parse(url));
       request.headers['Authorization'] = 'Bearer ' + apiKey;
       request.fields['model'] = 'whisper-large-v3-turbo';
