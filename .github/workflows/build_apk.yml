@@ -19,40 +19,54 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Flutter SDK (3.13.6 Stable)
+      - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6'
+          flutter-version: '3.19.x'
           channel: 'stable'
 
-      - name: Clean up root extra main.dart
-        run: rm -f main.dart
+      - name: Clean up extra root files
+        run: |
+          rm -f main.dart
+
+      - name: Fix Dart code bugs automatically
+        run: |
+          if [ -f lib/main.dart ]; then
+            sed -i 's/PositionGravity.rightBottom/PositionGravity.auto/g' lib/main.dart
+            sed -i 's/PositionGravity.rightBottom/PositionGravity.right/g' lib/main.dart
+          fi
 
       - name: Backup original pubspec.yaml
-        run: cp pubspec.yaml pubspec.yaml.bak || true
+        run: |
+          cp pubspec.yaml pubspec.yaml.bak || true
 
       - name: Generate Android Project Files
-        run: flutter create . --platforms=android --org com.flowvoice.app
+        run: |
+          flutter create . --platforms=android --org com.flowvoice.app
 
-      - name: Restore original pubspec.yaml
+      - name: Restore original pubspec.yaml & Add dependencies
         run: |
           if [ -f pubspec.yaml.bak ]; then
             cp pubspec.yaml.bak pubspec.yaml
           fi
+          flutter pub add http speech_to_text shared_preferences flutter_overlay_window cupertino_icons
 
-      - name: Fetch Dependencies
-        run: flutter pub get
-
-      - name: Configure Android Gradle
+      - name: Configure Android SDK 34 & Gradle permissions
         run: |
+          # Set compileSdk & targetSdk to 34, minSdk to 21, and release signing to debug
+          sed -i 's/compileSdkVersion .*/compileSdkVersion 34/g' android/app/build.gradle || true
+          sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle || true
+          sed -i 's/targetSdkVersion .*/targetSdkVersion 34/g' android/app/build.gradle || true
+          sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
           sed -i 's/minSdk = .*/minSdk = 21/g' android/app/build.gradle || true
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
-      - name: Patch Plugin Namespaces
-        run: |
-          echo "aW1wb3J0IG9zLCBnbG9iCnB1Yl9jYWNoZSA9IG9zLnBhdGguZXhwYW5kdXNlcignfi8ucHViLWNhY2hlJykKZm9yIGJnIGluIGdsb2IuZ2xvYihmJ3twdWJfY2FjaGV9LyoqL2FuZHJvaWQvYnVpbGQuZ3JhZGxlJywgcmVjdXJzaXZlPVRydWUpOgogICAgd2l0aCBvcGVuKGJnLCAncicsIGVuY29kaW5nPSd1dGYtOCcpIGFzIGY6CiAgICAgICAgY29udGVudCA9IGYucmVhZCgpCiAgICBpZiAnYW5kcm9pZCB7JyBpbiBjb250ZW50IGFuZCAnbmFtZXNwYWNlJyBub3QgaW4gY29udGVudDoKICAgICAgICBwa2cgPSAnZmx1dHRlci5vdmVybGF5LndpbmRvdy5mbHV0dGVyX292ZXJsYXlfd2luZG93JyBpZiAnZmx1dHRlcl9vdmVybGF5X3dpbmRvdycgaW4gYmcgZWxzZSAnY29tLmNzZGNvcnAuc3BlZWNoX3RvX3RleHQnCiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgnYW5kcm9pZCB7JywgZidhbmRyb2lkIHt7XG4gICAgbmFtZXNwYWNlICJ7cGtnfSInKQogICAgICAgIHdpdGggb3BlbihiZywgJ3cnLCBlbmNvZGluZz0ndXRmLTgnKSBhcyBmOgogICAgICAgICAgICBmLndyaXRlKGNvbnRlbnQpCgptYW5pZmVzdCA9ICdhbmRyb2lkL2FwcC9zcmMvbWFpbi9BbmRyb2lkTWFuaWZlc3QueG1sJwppZiBvcy5wYXRoLmV4aXN0cyhtYW5pZmVzdCk6CiAgICB3aXRoIG9wZW4obWFuaWZlc3QsICdyJywgZW5jb2Rpbmc9J3V0Zi04JykgYXMgZjoKICAgICAgICBjb250ZW50ID0gZi5yZWFkKCkKICAgIHBlcm1zID0gJzx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uSU5URVJORVQiLz5cbjx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uUkVDT1JEX0FVRElPIi8+XG48dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlNZU1RFTV9BTEVSVF9XSU5ET1ciLz5cbjx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uRk9SRUdST1VORF9TRVJWSUNFIi8+JwogICAgc2VydmljZSA9ICc8c2VydmljZSBhbmRyb2lkOm5hbWU9ImZsdXR0ZXIub3ZlcmxheS53aW5kb3cuZmx1dHRlcl9vdmVybGF5X3dpbmRvdy5PdmVybGF5U2VydmljZSIgYW5kcm9pZDpleHBvcnRlZD0iZmFsc2UiLz4nCiAgICBpZiAnPHVzZXMtcGVybWlzc2lvbicgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgnPG1hbmlmZXN0JywgJzxtYW5pZmVzdD5cbicgKyBwZXJtcykKICAgIGlmICc8L2FwcGxpY2F0aW9uPicgaW4gY29udGVudCBhbmQgJ092ZXJsYXlTZXJ2aWNlJyBub3QgaW4gY29udGVudDoKICAgICAgICBjb250ZW50ID0gY29udGVudC5yZXBsYWNlKCc8L2FwcGxpY2F0aW9uPicsIHNlcnZpY2UgKyAnXG48L2FwcGxpY2F0aW9uPicpCiAgICB3aXRoIG9wZW4obWFuaWZlc3QsICd3JywgZW5jb2Rpbmc9J3V0Zi04JykgYXMgZjoKICAgICAgICBmLndyaXRlKGNvbnRlbnQpCg==" | base64 -d > patch.py
-          python3 patch.py
+          # Inject permissions into AndroidManifest.xml safely
+          echo "aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGNvbnRlbnQgPSBmLnJlYWQoKQoKICAgIHBlcm1pc3Npb25zID0gJycnCiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlJFQ09SRF9BVURJTyIvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5TWVNURU1fQUxFUlRfV0lORE9XIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIvPgonJycKICAgIHNlcnZpY2UgPSAnJycKICAgICAgICA8c2VydmljZSBhbmRyb2lkOm5hbWU9ImZsdXR0ZXIub3ZlcmxheS53aW5kb3cuZmx1dHRlcl9vdmVybGF5X3dpbmRvdy5PdmVybGF5U2VydmljZSIgYW5kcm9pZDpleHBvcnRlZD0iZmFsc2UiLz4KJycnCiAgICBpZiAiPHVzZXMtcGVybWlzc2lvbiIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPG1hbmlmZXN0IiwgIjxtYW5pZmVzdCIgKyBwZXJtaXNzaW9ucykKCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGNvbnRlbnQgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGNvbnRlbnQ6CiAgICAgICAgY29udGVudCA9IGNvbnRlbnQucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzZXJ2aWNlICsgIlxuICAgIDwvYXBwbGljYXRpb24+IikKCiAgICB3aXRoIG9wZW4ocGF0aCwgInciLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGYud3JpdGUoY29udGVudCkK" | base64 -d | python3 -
+
+      - name: Get dependencies
+        run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
