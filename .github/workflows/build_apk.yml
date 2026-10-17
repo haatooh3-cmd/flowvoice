@@ -44,7 +44,7 @@ jobs:
           fi
           flutter pub add http shared_preferences flutter_overlay_window record path_provider cupertino_icons
 
-      - name: Configure Android SDK 34 & Gradle permissions
+      - name: Configure Android SDK 34 & Disable R8 Shrinker
         run: |
           sed -i 's/compileSdkVersion .*/compileSdkVersion 34/g' android/app/build.gradle || true
           sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle || true
@@ -52,14 +52,34 @@ jobs:
           sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion .*/minSdkVersion 23/g' android/app/build.gradle || true
           sed -i 's/minSdk = .*/minSdk = 23/g' android/app/build.gradle || true
+          sed -i 's/minifyEnabled true/minifyEnabled false/g' android/app/build.gradle || true
+          sed -i 's/shrinkResources true/shrinkResources false/g' android/app/build.gradle || true
           sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
-          python3 -c "import base64, os; path='android/app/src/main/AndroidManifest.xml'; code=base64.b64decode('aW1wb3J0IG9zCnBhdGggPSAiYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCIKaWYgb3MucGF0aC5leGlzdHMocGF0aCk6CiAgICB3aXRoIG9wZW4ocGF0aCwgInIiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGMgPSBmLnJlYWQoKQogICAgcCA9ICcnJzx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmdyb2lkLnBlcm1pc3Npb24uSU5URVJORVQiLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmdyb2lkLnBlcm1pc3Npb24uUkVDT1JEX0FVRElPIi8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlNZU1RFTV9BTEVSVF9XSU5ET1ciLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmdyb2lkLnBlcm1pc3Npb24uRk9SRUdST1VORF9TRVJWSUNFIi8+CicnJwogICAgcyA9ICcnJyAgICAgICAgPHNlcnZpY2UgYW5kcm9pZDpuYW1lPSJmbHV0dGVyLm92ZXJsYXlud2luZG93LmZsdXR0ZXJfb3ZlcmxheV93aW5kb3cuT3ZlcmxheVNlcnZpY2UiIGFuZHJvaWQ6ZXhwb3J0ZWQ9ImZhbHNlIi8+CicnJwogICAgaWYgIlNZU1RFTV9BTEVSVF9XSU5ET1ciIG5vdCBpbiBjOgogICAgICAgIGMgPSBjLnJlcGxhY2UoIjxhcHBsaWNhdGlvbiIsIHAgKyAiICAgIDxhcHBsaWNhdGlvbiIpCiAgICBpZiAiPC9hcHBsaWNhdGlvbj4iIGluIGMgYW5kICJPdmVybGF5U2VydmljZSIgbm90IGluIGM6CiAgICAgICAgYyA9IGMucmVwbGFjZSgiPC9hcHBsaWNhdGlvbj4iLCBzICsgIiAgICA8L2FwcGxpY2F0aW9uPiIpCiAgICB3aXRoIG9wZW4ocGF0aCwgInciLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmOgogICAgICAgIGYud3JpdGUoYyk=').decode('utf-8'); exec(code)"
+          python3 -c "import os, re
+path = 'android/app/src/main/AndroidManifest.xml'
+if os.path.exists(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        c = f.read()
+    perms = '''    <uses-permission android:name=\"android.permission.INTERNET\"/>
+    <uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>
+    <uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>
+    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>
+'''
+    service = '''        <service android:name=\"flutter.overlaywindow.flutter_overlay_window.OverlayService\" android:exported=\"false\"/>
+'''
+    if 'SYSTEM_ALERT_WINDOW' not in c:
+        c = re.sub(r'<application', perms + '    <application', c, count=1)
+    if '</application>' in c and 'OverlayService' not in c:
+        c = c.replace('</application>', service + '    </application>')
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(c)
+"
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build APK without R8 shrinking
         run: flutter build apk --release --no-shrink
 
       - name: Upload APK Artifact
@@ -68,8 +88,7 @@ jobs:
           name: FlowVoice_Mobile_APK
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Generate Direct QR Code Link
+      - name: Generate Direct Download Summary
         run: |
-          sudo apt-get update && sudo apt-get install -y qrencode || true
           echo "### 📱 FlowVoice Mobile APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
-          echo "아래 Artifacts에서 APK를 바로 받거나 QR 코드를 스캔하세요!" >> $GITHUB_STEP_SUMMARY
+          echo "아래 Artifacts 항목에서 FlowVoice_Mobile_APK를 받아 설치하세요!" >> $GITHUB_STEP_SUMMARY
