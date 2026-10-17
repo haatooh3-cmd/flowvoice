@@ -1,4 +1,4 @@
-// FlowVoice Mobile v47 - Main Dart Entry Point
+// FlowVoice Mobile v48 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,7 +31,7 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v47',
+      title: 'FlowVoice Mobile v48',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
@@ -112,7 +112,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v47'),
+        title: const Text('FlowVoice Mobile v48'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
