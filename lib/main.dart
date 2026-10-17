@@ -1,4 +1,4 @@
-// FlowVoice Mobile v35 - Main Dart Entry Point
+// FlowVoice Mobile v36 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,7 +31,7 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v35',
+      title: 'FlowVoice Mobile v36',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
         colorScheme: const ColorScheme.dark(
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice Mobile v35',
+        overlayTitle: 'FlowVoice Mobile v36',
         overlayContent: '짧게 터치: 녹음 / 꾹 누르기: 히스토리 / 더블터치: 재복사',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v35'),
+        title: const Text('FlowVoice Mobile v36'),
         backgroundColor: const Color(0xFF21252B),
       ),
       body: SingleChildScrollView(
