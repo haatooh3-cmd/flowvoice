@@ -1,4 +1,4 @@
-// FlowVoice Mobile v48 - Main Dart Entry Point
+// FlowVoice Mobile v49 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,7 +31,7 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v48',
+      title: 'FlowVoice Mobile v49',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
@@ -112,7 +112,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v48'),
+        title: const Text('FlowVoice Mobile v49'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -339,7 +339,7 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
 
         final List<String> history = prefs.getStringList('history_list') ?? [];
         final nowStr = '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}';
-        history.insert(0, '[$nowStr]\n$cleanText');
+        history.insert(0, '[\$nowStr]\n\$cleanText');
         if (history.length > 50) history.removeLast();
         await prefs.setStringList('history_list', history);
       }
