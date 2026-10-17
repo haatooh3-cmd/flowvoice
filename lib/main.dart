@@ -1,4 +1,4 @@
-// FlowVoice Mobile v43 - Main Dart Entry Point
+// FlowVoice Mobile v45 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,7 +31,7 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v43',
+      title: 'FlowVoice Mobile v45',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
         colorScheme: const ColorScheme.dark(
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice Mobile v43',
+        overlayTitle: 'FlowVoice Mobile v45',
         overlayContent: '짧게 터치: 녹음 / 꾹 누르기: 히스토리 / 더블터치: 재복사',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v43'),
+        title: const Text('FlowVoice Mobile v45'),
         backgroundColor: const Color(0xFF21252B),
       ),
       body: SingleChildScrollView(
@@ -197,11 +197,17 @@ class _HomeScreenState extends State<HomeScreen> {
             const Divider(color: Color(0xFF3B4048)),
             const SizedBox(height: 10),
             const Text(
-              '📱 플로팅 마이크 사용법:\n'
-              '• 짧게 1회 터치: 음성 녹음 시작 및 완료\n'
-              '• 0.5초 꾹 누르기 (Long Press): 히스토리 패널 열기\n'
-              '• 더블 터치 (Double Tap): 최근 인식된 텍스트 다시 복사\n\n'
-              '🛡️ 2중 Fallback 안전장치:\n'
+              '📱 플로팅 마이크 사용법:
+'
+              '• 짧게 1회 터치: 음성 녹음 시작 및 완료
+'
+              '• 0.5초 꾹 누르기 (Long Press): 히스토리 패널 열기
+'
+              '• 더블 터치 (Double Tap): 최근 인식된 텍스트 다시 복사
+
+'
+              '🛡️ 2중 Fallback 안전장치:
+'
               'Groq API 사용 중 일일 한도 초과 시 Gemini API로 자동 우회하여 음성 타자가 중단되지 않습니다.',
               style: TextStyle(color: Color(0xFFE5C07B), fontSize: 13, height: 1.5),
             )
@@ -272,8 +278,10 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
     final List<String> history = prefs.getStringList('history_list') ?? [];
     if (history.isNotEmpty) {
       final firstRecord = history.first;
-      final parts = firstRecord.split('\n');
-      final textToCopy = parts.length > 1 ? parts.sublist(1).join('\n') : firstRecord;
+      final parts = firstRecord.split('
+');
+      final textToCopy = parts.length > 1 ? parts.sublist(1).join('
+') : firstRecord;
       await Clipboard.setData(ClipboardData(text: textToCopy));
     }
   }
@@ -310,7 +318,8 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
 
         final List<String> history = prefs.getStringList('history_list') ?? [];
         final nowStr = '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}';
-        history.insert(0, '[$nowStr]\n$cleanText');
+        history.insert(0, '[$nowStr]
+$cleanText');
         if (history.length > 50) history.removeLast();
         await prefs.setStringList('history_list', history);
       }
