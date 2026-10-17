@@ -1,4 +1,4 @@
-name: Build FlowVoice Android APK
+name: Build FlowVoice Android APK v15 (QR Code Supported)
 
 on:
   push:
@@ -67,3 +67,9 @@ jobs:
         with:
           name: FlowVoice_Mobile_APK
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Generate Direct QR Code Link
+        run: |
+          sudo apt-get update && sudo apt-get install -y qrencode || true
+          echo "### 📱 FlowVoice Mobile APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
+          echo "아래 Artifacts에서 APK를 바로 받거나 QR 코드를 스캔하세요!" >> $GITHUB_STEP_SUMMARY
