@@ -1,4 +1,4 @@
-// FlowVoice Mobile v31.9 - Main Dart Entry Point
+// FlowVoice Mobile v32 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,7 +31,7 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v31.9',
+      title: 'FlowVoice Mobile v32',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
         colorScheme: const ColorScheme.dark(
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setString('gemini_api_key', _geminiKeyController.text.trim());
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Groq 및 Gemini API 키가 저장되었습니다!')),
+        const SnackBar(content: Text('Groq 및 Gemini API 키가 성공적으로 저장되었습니다!')),
       );
     }
   }
@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final bool? requested = await FlutterOverlayWindow.requestPermission();
       if (requested != true) {
         setState(() {
-          _statusMessage = '플로팅 권한이 거부되었습니다.';
+          _statusMessage = '플로팅 마이크 권한이 거부되었습니다.';
         });
         return;
       }
@@ -104,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice Mobile v31.9',
-        overlayContent: '터치: 녹음 / 꾹 누르기: 히스토리 / 더블터치: 재복사',
+        overlayTitle: 'FlowVoice Mobile v32',
+        overlayContent: '짧게 터치: 녹음 / 꾹 누르기: 히스토리 / 더블터치: 재복사',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
         positionGravity: PositionGravity.none,
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v31.9'),
+        title: const Text('FlowVoice Mobile v32'),
         backgroundColor: const Color(0xFF21252B),
       ),
       body: SingleChildScrollView(
@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '1순위: Groq API Key (0.3초 초고속)',
+              '1순위: Groq API Key (0.3초 초고속 변환)',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
             ),
             const SizedBox(height: 6),
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              '2순위 보조: Gemini API Key (Groq 한도 초과시 자동 우회)',
+              '2순위 보조: Gemini API Key (Groq 한도 초과 시 자동 우회)',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFE5C07B)),
             ),
             const SizedBox(height: 6),
@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _geminiKeyController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Gemini API Key (AIzaSy...) 입력 (선택사항)',
+                hintText: 'Gemini API Key (AIzaSy...) 입력',
                 filled: true,
                 fillColor: const Color(0xFF282C34),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: const Color(0xFF61AFEF),
                 ),
                 icon: const Icon(Icons.save, color: Colors.black),
-                label: const Text('API 키 저장', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                label: const Text('API 키 저장하기', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 onPressed: _saveSettings,
               ),
             ),
@@ -198,11 +198,11 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 10),
             const Text(
               '📱 플로팅 마이크 사용법:\n'
-              '• 짧게 1회 터치: 녹음 시작 및 종료\n'
+              '• 짧게 1회 터치: 음성 녹음 시작 및 완료\n'
               '• 0.5초 꾹 누르기 (Long Press): 히스토리 패널 열기\n'
-              '• 더블 터치 (Double Tap): 최근 인식된 텍스트 재복사\n\n'
-              '🛡️ 2중 Fallback 동작:\n'
-              'Groq API 사용 중 일일 한도 초과시 Gemini API로 자동 전환되어 음성을 텍스트로 계속 변환합니다.',
+              '• 더블 터치 (Double Tap): 최근 인식된 텍스트 다시 복사\n\n'
+              '🛡️ 2중 Fallback 안전장치:\n'
+              'Groq API 사용 중 일일 한도 초과 시 Gemini API로 자동 전환되어 음성 타자가 중단되지 않습니다.',
               style: TextStyle(color: Color(0xFFE5C07B), fontSize: 13, height: 1.5),
             )
           ],
@@ -295,7 +295,7 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
         }
       }
 
-      // 2순위: Groq 실패시 Gemini API 우회
+      // 2순위: Groq 실패 또는 키 미설정 시 Gemini API 우회
       if ((resultText == null || resultText.trim().isEmpty) && geminiKey.isNotEmpty) {
         try {
           resultText = await _callGeminiApi(path, geminiKey);
@@ -363,9 +363,17 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
     ).timeout(const Duration(seconds: 12));
 
     if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      final String? text = jsonResponse['candidates']?[0]?['content']?[0]?['parts']?[0]?['text'];
-      return text;
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final candidates = jsonResponse['candidates'] as List<dynamic>?;
+      if (candidates != null && candidates.isNotEmpty) {
+        final firstCandidate = candidates[0] as Map<String, dynamic>?;
+        final content = firstCandidate?['content'] as Map<String, dynamic>?;
+        final parts = content?['parts'] as List<dynamic>?;
+        if (parts != null && parts.isNotEmpty) {
+          final firstPart = parts[0] as Map<String, dynamic>?;
+          return firstPart?['text'] as String?;
+        }
+      }
     }
     return null;
   }
