@@ -1,4 +1,4 @@
-// FlowVoice Mobile v46 - Main Dart Entry Point
+// FlowVoice Mobile v47 - Main Dart Entry Point
 // Copy this code into lib/main.dart on GitHub repository
 
 import 'dart:convert';
@@ -31,91 +31,80 @@ class FlowVoiceMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlowVoice Mobile v46',
+      title: 'FlowVoice Mobile v47',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF1E2227),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF98C379),
-          secondary: Color(0xFF61AFEF),
+          primary: Color(0xFF61AFEF),
+          surface: Color(0xFF21252B),
         ),
       ),
-      home: const HomeScreen(),
-      debugShowCheckedModeBanner: false,
+      home: const MainHomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MainHomeScreen extends StatefulWidget {
+  const MainHomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MainHomeScreen> createState() => _MainHomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _groqKeyController = TextEditingController();
-  final TextEditingController _geminiKeyController = TextEditingController();
-  bool _isOverlayActive = false;
-  String _statusMessage = 'Groq & Gemini API Key 설정 대기 중';
+class _MainHomeScreenState extends State<MainHomeScreen> {
+  final TextEditingController _groqController = TextEditingController();
+  final TextEditingController _geminiController = TextEditingController();
+
+  List<String> _historyList = [];
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    _loadSettingsAndHistory();
   }
 
-  Future<void> _loadSettings() async {
+  Future<void> _loadSettingsAndHistory() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _groqKeyController.text = prefs.getString('groq_api_key') ?? '';
-      _geminiKeyController.text = prefs.getString('gemini_api_key') ?? '';
+      _groqController.text = prefs.getString('groq_api_key') ?? '';
+      _geminiController.text = prefs.getString('gemini_api_key') ?? '';
+      _historyList = prefs.getStringList('history_list') ?? [];
     });
   }
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('groq_api_key', _groqKeyController.text.trim());
-    await prefs.setString('gemini_api_key', _geminiKeyController.text.trim());
+    await prefs.setString('groq_api_key', _groqController.text.trim());
+    await prefs.setString('gemini_api_key', _geminiController.text.trim());
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Groq 및 Gemini API 키가 성공적으로 저장되었습니다!')),
+        const SnackBar(content: Text('API 키가 성공적으로 저장되었습니다!')),
       );
     }
   }
 
   Future<void> _toggleOverlay() async {
-    final bool status = await FlutterOverlayWindow.isPermissionGranted();
-    if (!status) {
-      final bool? requested = await FlutterOverlayWindow.requestPermission();
-      if (requested != true) {
-        setState(() {
-          _statusMessage = '플로팅 마이크 권한이 거부되었습니다.';
-        });
-        return;
-      }
+    final bool isPermissionGranted = await FlutterOverlayWindow.isPermissionGranted();
+    if (!isPermissionGranted) {
+      final bool? granted = await FlutterOverlayWindow.requestPermission();
+      if (granted != true) return;
     }
 
-    if (await FlutterOverlayWindow.isActive()) {
+    final bool isActive = await FlutterOverlayWindow.isActive();
+    if (isActive) {
       await FlutterOverlayWindow.closeOverlay();
-      setState(() {
-        _isOverlayActive = false;
-        _statusMessage = '오버레이 마이크 닫힘';
-      });
     } else {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
-        overlayTitle: 'FlowVoice Mobile v46',
-        overlayContent: '짧게 터치: 녹음 / 꾹 누르기: 히스토리 / 더블터치: 재복사',
+        overlayTitle: 'FlowVoice Mic',
+        overlayContent: 'FlowVoice Floating Mic Overlay',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
         positionGravity: PositionGravity.none,
-        height: 160,
         width: 160,
+        height: 160,
       );
-      setState(() {
-        _isOverlayActive = true;
-        _statusMessage = '플로팅 마이크 실행 중';
-      });
     }
   }
 
@@ -123,94 +112,118 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlowVoice Mobile v46'),
-        backgroundColor: const Color(0xFF21252B),
+        title: const Text('FlowVoice Mobile v47'),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              '1순위: Groq API Key (0.3초 초고속 변환)',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
+            Card(
+              color: const Color(0xFF21252B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '🔑 STT API Key 설정',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _groqController,
+                      decoration: const InputDecoration(
+                        labelText: '1순위: Groq API Key (whisper-large-v3-turbo)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _geminiController,
+                      decoration: const InputDecoration(
+                        labelText: '2순위: Gemini API Key (gemini-2.0-flash)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _saveSettings,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF98C379),
+                        foregroundColor: Colors.black,
+                      ),
+                      child: const Text('설정 저장하기', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _groqKeyController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Groq API Key (gsk_...) 입력',
-                filled: true,
-                fillColor: const Color(0xFF282C34),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            const SizedBox(height: 16),
+            Card(
+              color: const Color(0xFF21252B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      '🎙️ 플로팅 마이크 버튼',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF98C379)),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '다른 앱 화면 위에서도 녹음 및 클립보드 자동 복사가 가능한 오버레이 마이크입니다.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _toggleOverlay,
+                      icon: const Icon(Icons.layers),
+                      label: const Text('플로팅 마이크 실행 / 닫기'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF61AFEF),
+                        foregroundColor: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
             const Text(
-              '2순위 보조: Gemini API Key (Groq 한도 초과 시 자동 우회)',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFE5C07B)),
+              '📜 변환 히스토리',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE5C07B)),
             ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _geminiKeyController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Gemini API Key (AIzaSy...) 입력',
-                filled: true,
-                fillColor: const Color(0xFF282C34),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF61AFEF),
-                ),
-                icon: const Icon(Icons.save, color: Colors.black),
-                label: const Text('API 키 저장하기', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                onPressed: _saveSettings,
-              ),
-            ),
-            const SizedBox(height: 25),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isOverlayActive ? const Color(0xFFE06C75) : const Color(0xFF98C379),
-                ),
-                icon: Icon(_isOverlayActive ? Icons.stop : Icons.mic, color: Colors.black),
-                label: Text(
-                  _isOverlayActive ? '플로팅 마이크 끄기' : '화면 위에 플로팅 마이크 띄우기',
-                  style: const TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-                onPressed: _toggleOverlay,
-              ),
-            ),
-            const SizedBox(height: 15),
-            Center(child: Text(_statusMessage, style: const TextStyle(color: Color(0xFFABB2BF)))),
-            const SizedBox(height: 25),
-            const Divider(color: Color(0xFF3B4048)),
-            const SizedBox(height: 10),
-            const Text(
-              '📱 플로팅 마이크 사용법:
-'
-              '• 짧게 1회 터치: 음성 녹음 시작 및 완료
-'
-              '• 0.5초 꾹 누르기 (Long Press): 히스토리 패널 열기
-'
-              '• 더블 터치 (Double Tap): 최근 인식된 텍스트 다시 복사
-
-'
-              '🛡️ 2중 Fallback 안전장치:
-'
-              'Groq API 사용 중 일일 한도 초과 시 Gemini API로 자동 우회하여 음성 타자가 중단되지 않습니다.',
-              style: TextStyle(color: Color(0xFFE5C07B), fontSize: 13, height: 1.5),
-            )
+            const SizedBox(height: 8),
+            _historyList.isEmpty
+                ? const Center(child: Text('변환 기록이 아직 없습니다.', style: TextStyle(color: Colors.grey)))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _historyList.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        color: const Color(0xFF21252B),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          title: Text(_historyList[index]),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.copy, color: Color(0xFF61AFEF)),
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: _historyList[index]));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('클립보드에 복사되었습니다!')),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ],
         ),
       ),
@@ -226,43 +239,53 @@ class FloatingMicOverlayWidget extends StatefulWidget {
 }
 
 class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
+  final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   bool _isProcessing = false;
-  final AudioRecorder _audioRecorder = AudioRecorder();
-  String? _audioPath;
+
+  @override
+  void initState() {
+    super.initState();
+    FlutterOverlayWindow.overlayListener.listen((event) {
+      if (event != null && event is Map) {
+        if (event['action'] == 'toggle_recording') {
+          _handleShortClick();
+        }
+      }
+    });
+  }
 
   Future<void> _handleShortClick() async {
     if (_isProcessing) return;
 
-    if (!_isRecording) {
-      if (await _audioRecorder.hasPermission()) {
-        final Directory tempDir = await getTemporaryDirectory();
-        _audioPath = '${tempDir.path}/flowvoice_temp.m4a';
-
-        await _audioRecorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc, sampleRate: 16000),
-          path: _audioPath!,
-        );
-
-        setState(() {
-          _isRecording = true;
-        });
-      }
-    } else {
+    if (_isRecording) {
       setState(() {
         _isRecording = false;
         _isProcessing = true;
       });
 
       final String? path = await _audioRecorder.stop();
-
-      if (path != null && File(path).existsSync()) {
+      if (path != null) {
         await _transcribeAudio(path);
       }
 
       setState(() {
         _isProcessing = false;
       });
+    } else {
+      if (await _audioRecorder.hasPermission()) {
+        final Directory tempDir = await getTemporaryDirectory();
+        final String path = '${tempDir.path}/flow_recording.m4a';
+
+        await _audioRecorder.start(
+          const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000, sampleRate: 16000),
+          path: path,
+        );
+
+        setState(() {
+          _isRecording = true;
+        });
+      }
     }
   }
 
@@ -278,10 +301,8 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
     final List<String> history = prefs.getStringList('history_list') ?? [];
     if (history.isNotEmpty) {
       final firstRecord = history.first;
-      final parts = firstRecord.split('
-');
-      final textToCopy = parts.length > 1 ? parts.sublist(1).join('
-') : firstRecord;
+      final parts = firstRecord.split('\n');
+      final textToCopy = parts.length > 1 ? parts.sublist(1).join('\n') : firstRecord;
       await Clipboard.setData(ClipboardData(text: textToCopy));
     }
   }
@@ -318,8 +339,7 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
 
         final List<String> history = prefs.getStringList('history_list') ?? [];
         final nowStr = '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}';
-        history.insert(0, '[$nowStr]
-$cleanText');
+        history.insert(0, '[$nowStr]\n$cleanText');
         if (history.length > 50) history.removeLast();
         await prefs.setStringList('history_list', history);
       }
