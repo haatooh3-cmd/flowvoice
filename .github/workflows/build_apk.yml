@@ -1,4 +1,4 @@
-name: Build FlowVoice Mobile APK v48
+name: Build FlowVoice Mobile APK v49
 
 on:
   push:
@@ -119,7 +119,7 @@ jobs:
 
       - name: Update AndroidManifest Permissions
         run: |
-          python3 -c "import os, re; p='android/app/src/main/AndroidManifest.xml'; f=open(p,'r',encoding='utf-8'); c=f.read(); f.close(); perms='    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n'; service='        <service android:name="flutter.overlaywindow.flutter_overlay_window.OverlayService" android:exported="false"/>\n'; c=re.sub(r'<application', perms+'    <application', c, count=1) if 'SYSTEM_ALERT_WINDOW' not in c else c; c=c.replace('</application>', service+'    </application>') if '</application>' in c and 'OverlayService' not in c else c; f=open(p,'w',encoding='utf-8'); f.write(c); f.close()"
+          echo "PG1hbmlmZXN0IHhtbG5zOmFuZHJvaWQ9Imh0dHA6Ly9zY2hlbWFzLmFuZHJvaWQuY29tL2Fway9yZXMvYW5kcm9pZCIgcGFja2FnZT0iY29tLmZsb3d2b2ljZS5hcHAiPjx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uSU5URVJORVQiLz48dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLlJFQ09SRF9BVURJTyIvPjx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uU1lTVEVNX0FMRVJUX1dJTkRPVyIvPjx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uRk9SRUdST1VORF9TRVJWSUNFIi8+PGFwcGxpY2F0aW9uIGFuZHJvaWQ6bGFiZWw9IkZsb3dWb2ljZSIgYW5kcm9pZDpuYW1lPSIke2FwcGxpY2F0aW9uTmFtZX0iIGFuZHJvaWQ6aWNvbj0iQG1pcG1hcC9pY19sYXVuY2hlciI+PGFjdGl2aXR5IGFuZHJvaWQ6bmFtZT0iLk1haW5BY3Rpdml0eSIgYW5kcm9pZDpleHBvcnRlZD0idHJ1ZSIgYW5kcm9pZDpsYXVuY2hNb2RlPSJzaW5nbGVUb3AiIGFuZHJvaWQ6dGhlbWU9IkBzdHlsZS9MYXVuY2hUaGVtZSIgYW5kcm9pZDpjb25maWdDaGFuZ2VzPSJvcmllbnRhdGlvbnxrZXlib2FyZEhpZGRlbnxrZXlib2FyZHxzY3JlZW5TaXplfHNtYWxsZXN0U2NyZWVuU2l6ZXxsb2NhbGV8bGF5b3V0RGlyZWN0aW9ufGZvbnRTY2FsZXxzY3JlZW5MYXlvdXR8ZGVuc2l0eXx1aU1vZGUiIGFuZHJvaWQ6aGFyZHdhcmVBY2NlbGVyYXRlZD0idHJ1ZSIgYW5kcm9pZDp3aW5kb3dTb2Z0SW5wdXRNb2RlPSJhZGp1c3RSZXNpemUiPjxtZXRhLWRhdGEgYW5kcm9pZDpuYW1lPSJpby5mbHV0dGVyLmVtYmVkZGluZy5hbmRyb2lkLk5vcm1hbFRoZW1lIiBhbmRyb2lkOnZhbHVlPSJAc3R5bGUvTm9ybWFsVGhlbWUiLz48aW50ZW50LWZpbHRlcj48YWN0aW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5pbnRlbnQuYWN0aW9uLk1BSU4iLz48Y2F0ZWdvcnkgYW5kcm9pZDpuYW1lPSJhbmRyb2lkLmludGVudC5jYXRlZ29yeS5MQVVNQ0hFUiIvPjwvaW50ZW50LWZpbHRlcj48L2FjdGl2aXR5PjxtZXRhLWRhdGEgYW5kcm9pZDpuYW1lPSJmbHV0dGVyRW1iZWRkaW5nIiBhbmRyb2lkOnZhbHVlPSIyIi8+PHNlcnZpY2UgYW5kcm9pZDpuYW1lPSJmbHV0dGVyLm92ZXJsYXl3aW5kb3cuZmx1dHRlcl9vdmVybGF5X3dpbmRvdy5PdmVybGF5U2VydmljZSIgYW5kcm9pZDpleHBvcnRlZD0iZmFsc2UiLz48L2FwcGxpY2F0aW9uPjwvbWFuaWZlc3Q+" | base64 -d > android/app/src/main/AndroidManifest.xml
 
       - name: Fetch Flutter dependencies
         run: flutter pub get
@@ -130,11 +130,11 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FlowVoice_Mobile_v48_APK
+          name: FlowVoice_Mobile_v49_APK
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Generate Direct Download & QR Code Summary
         run: |
           sudo apt-get update && sudo apt-get install -y qrencode || true
-          echo "### 📱 FlowVoice Mobile v48 APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 FlowVoice Mobile v49 APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
           echo "아래 Artifacts 섹션에서 APK를 다운로드하거나 화면의 안내를 참조하세요!" >> $GITHUB_STEP_SUMMARY
