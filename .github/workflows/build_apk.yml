@@ -1,4 +1,4 @@
-name: Build FlowVoice Android APK v15 (QR Code Supported)
+name: Build FlowVoice Android APK v16 (QR Code Supported)
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
           fi
           flutter pub add http shared_preferences flutter_overlay_window record path_provider cupertino_icons
 
-      - name: Configure Android SDK 34 & Disable R8 Shrinker
+      - name: Configure Android SDK 34 & Gradle permissions & Disable Shrinker
         run: |
           sed -i 's/compileSdkVersion .*/compileSdkVersion 34/g' android/app/build.gradle || true
           sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle || true
@@ -52,21 +52,22 @@ jobs:
           sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion .*/minSdkVersion 23/g' android/app/build.gradle || true
           sed -i 's/minSdk = .*/minSdk = 23/g' android/app/build.gradle || true
+          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
           sed -i 's/minifyEnabled true/minifyEnabled false/g' android/app/build.gradle || true
           sed -i 's/shrinkResources true/shrinkResources false/g' android/app/build.gradle || true
-          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' android/app/build.gradle || true
 
-          python3 -c "import os, re
+          cat << 'EOF' > configure_manifest.py
+import os, re
 path = 'android/app/src/main/AndroidManifest.xml'
 if os.path.exists(path):
     with open(path, 'r', encoding='utf-8') as f:
         c = f.read()
-    perms = '''    <uses-permission android:name=\"android.permission.INTERNET\"/>
-    <uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>
-    <uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>
-    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>
+    perms = '''    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 '''
-    service = '''        <service android:name=\"flutter.overlaywindow.flutter_overlay_window.OverlayService\" android:exported=\"false\"/>
+    service = '''        <service android:name="flutter.overlaywindow.flutter_overlay_window.OverlayService" android:exported="false"/>
 '''
     if 'SYSTEM_ALERT_WINDOW' not in c:
         c = re.sub(r'<application', perms + '    <application', c, count=1)
@@ -74,21 +75,23 @@ if os.path.exists(path):
         c = c.replace('</application>', service + '    </application>')
     with open(path, 'w', encoding='utf-8') as f:
         f.write(c)
-"
+EOF
+          python3 configure_manifest.py
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK without R8 shrinking
+      - name: Build APK
         run: flutter build apk --release --no-shrink
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FlowVoice_Mobile_APK
+          name: FlowVoice_Mobile_APK_v16
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Generate Direct Download Summary
+      - name: Generate Direct QR Code Link
         run: |
-          echo "### 📱 FlowVoice Mobile APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
-          echo "아래 Artifacts 항목에서 FlowVoice_Mobile_APK를 받아 설치하세요!" >> $GITHUB_STEP_SUMMARY
+          sudo apt-get update && sudo apt-get install -y qrencode || true
+          echo "### 📱 FlowVoice Mobile APK v16 빌드 완료!" >> $GITHUB_STEP_SUMMARY
+          echo "아래 Artifacts에서 APK를 바로 받거나 QR 코드를 스캔하세요!" >> $GITHUB_STEP_SUMMARY
