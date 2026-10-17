@@ -1,4 +1,4 @@
-name: Build FlowVoice Mobile APK v47
+name: Build FlowVoice Mobile APK v48
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
           fi
           flutter pub add http shared_preferences flutter_overlay_window record path_provider cupertino_icons
 
-      - name: Overwrite Android app build.gradle (Java 17 & Desugaring)
+      - name: Overwrite Android app build.gradle (Java 17 & Desugaring 1.2.2)
         run: |
           cat << 'GROOVY_EOF' > android/app/build.gradle
           plugins {
@@ -109,7 +109,7 @@ jobs:
           }
 
           dependencies {
-              coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+              coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
           }
           GROOVY_EOF
 
@@ -119,7 +119,7 @@ jobs:
 
       - name: Update AndroidManifest Permissions
         run: |
-          python3 -c "import os, re; p='android/app/src/main/AndroidManifest.xml'; f=open(p,'r',encoding='utf-8'); c=f.read(); f.close(); perms='    <uses-permission android:name=\"android.permission.INTERNET\"/>\n    <uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>\n    <uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>\n    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>\n'; service='        <service android:name=\"flutter.overlaywindow.flutter_overlay_window.OverlayService\" android:exported=\"false\"/>\n'; c=re.sub(r'<application', perms+'    <application', c, count=1) if 'SYSTEM_ALERT_WINDOW' not in c else c; c=c.replace('</application>', service+'    </application>') if '</application>' in c and 'OverlayService' not in c else c; f=open(p,'w',encoding='utf-8'); f.write(c); f.close()"
+          python3 -c "import os, re; p='android/app/src/main/AndroidManifest.xml'; f=open(p,'r',encoding='utf-8'); c=f.read(); f.close(); perms='    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n'; service='        <service android:name="flutter.overlaywindow.flutter_overlay_window.OverlayService" android:exported="false"/>\n'; c=re.sub(r'<application', perms+'    <application', c, count=1) if 'SYSTEM_ALERT_WINDOW' not in c else c; c=c.replace('</application>', service+'    </application>') if '</application>' in c and 'OverlayService' not in c else c; f=open(p,'w',encoding='utf-8'); f.write(c); f.close()"
 
       - name: Fetch Flutter dependencies
         run: flutter pub get
@@ -130,11 +130,11 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FlowVoice_Mobile_v47_APK
+          name: FlowVoice_Mobile_v48_APK
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Generate Direct Download & QR Code Summary
         run: |
           sudo apt-get update && sudo apt-get install -y qrencode || true
-          echo "### 📱 FlowVoice Mobile v47 APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 FlowVoice Mobile v48 APK 빌드 완료!" >> $GITHUB_STEP_SUMMARY
           echo "아래 Artifacts 섹션에서 APK를 다운로드하거나 화면의 안내를 참조하세요!" >> $GITHUB_STEP_SUMMARY
