@@ -53,10 +53,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _groqApiKeyController = TextEditingController();
-  final TextEditingController _geminiApiKeyController = TextEditingController();
+  final TextEditingController _groqKeyController = TextEditingController();
+  final TextEditingController _geminiKeyController = TextEditingController();
   bool _isOverlayActive = false;
-  String _statusMessage = 'API Key 설정 상태 확인 중...';
+  String _statusMessage = 'Groq & Gemini API Key 설정 대기 중';
 
   @override
   void initState() {
@@ -67,27 +67,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _groqApiKeyController.text = prefs.getString('groq_api_key') ?? '';
-      _geminiApiKeyController.text = prefs.getString('gemini_api_key') ?? '';
-      if (_groqApiKeyController.text.isNotEmpty || _geminiApiKeyController.text.isNotEmpty) {
-        _statusMessage = 'API Key 등록 완료 (음성 입력 준비 됨)';
-      } else {
-        _statusMessage = 'API Key를 하나 이상 입력해주세요.';
-      }
+      _groqKeyController.text = prefs.getString('groq_api_key') ?? '';
+      _geminiKeyController.text = prefs.getString('gemini_api_key') ?? '';
     });
   }
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('groq_api_key', _groqApiKeyController.text.trim());
-    await prefs.setString('gemini_api_key', _geminiApiKeyController.text.trim());
+    await prefs.setString('groq_api_key', _groqKeyController.text.trim());
+    await prefs.setString('gemini_api_key', _geminiKeyController.text.trim());
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Groq & Gemini API 키 설정이 저장되었습니다!')),
+        const SnackBar(content: Text('Groq 및 Gemini API 키가 정상 저장되었습니다!')),
       );
-      setState(() {
-        _statusMessage = 'API 키 저장 완료! 오버레이 마이크를 켜서 사용하세요.';
-      });
     }
   }
 
@@ -113,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
         overlayTitle: 'FlowVoice Mobile',
-        overlayContent: '짧게 터치: 녹음 / 길게 터치: 히스토리',
+        overlayContent: '짧게 터치: 녹음 / 길게 터치: 히스토리 / 더블터치: 재복사',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilitySecret,
         positionGravity: PositionGravity.none,
@@ -140,37 +132,37 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '1순위: Groq API Key (0.3초 초고속)',
+              '1순위: Groq API Key',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF61AFEF)),
             ),
             const SizedBox(height: 6),
             TextField(
-              controller: _groqApiKeyController,
+              controller: _groqKeyController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Groq API Key (gsk_...)',
+                hintText: 'gsk_... Key 입력',
                 filled: true,
                 fillColor: const Color(0xFF282C34),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             const Text(
-              '2순위 (보조/Fallback): Gemini API Key',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF98C379)),
+              '2순위 (보조): Gemini API Key',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFE5C07B)),
             ),
             const SizedBox(height: 6),
             TextField(
-              controller: _geminiApiKeyController,
+              controller: _geminiKeyController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Gemini API Key (AIzaSy...)',
+                hintText: 'Gemini API Key 입력',
                 filled: true,
                 fillColor: const Color(0xFF282C34),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -179,11 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: const Color(0xFF61AFEF),
                 ),
                 icon: const Icon(Icons.save, color: Colors.black),
-                label: const Text('API 키 전체 저장', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                label: const Text('API 키 저장하기', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 onPressed: _saveSettings,
               ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -205,14 +197,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const Divider(color: Color(0xFF3B4048)),
             const SizedBox(height: 10),
             const Text(
-              '💡 하이브리드 Fallback 구조:\n'
-              '1. Groq API Key로 먼저 변환 시도\n'
-              '2. Groq 한도 초과 또는 실패 시 Gemini 2.0 Flash API로 자동 우회\n'
-              '3. 키가 없거나 실패 시 오류 없이 안전 안내 표시\n\n'
               '터치 조작 안내:\n'
-              '• 짧게 터치: 음성 녹음 시작 및 종료\n'
-              '• 꾹 누르기 (Long Press): 히스토리 패널 열기\n'
-              '• 더블 터치: 최근 인식된 텍스트 재복사',
+              '• 짧게 1회 터치: 음성 녹음 시작 및 종료\n'
+              '• 0.5초 꾹 누르기 (Long Press): 히스토리 패널 열기\n'
+              '• 더블 터치: 최근 변환된 텍스트 다시 클립보드 복사',
               style: TextStyle(color: Color(0xFFE5C07B), fontSize: 13, height: 1.5),
             )
           ],
@@ -277,79 +265,107 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
     });
   }
 
+  Future<void> _reCopyLastText() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> history = prefs.getStringList('history_list') ?? [];
+    if (history.isNotEmpty) {
+      final String lastItem = history.first;
+      final parts = lastItem.split('\n');
+      final textToCopy = parts.length > 1 ? parts.sublist(1).join('\n') : lastItem;
+      await Clipboard.setData(ClipboardData(text: textToCopy));
+    }
+  }
+
   Future<void> _transcribeAudio(String path) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String groqApiKey = prefs.getString('groq_api_key') ?? '';
       final String geminiApiKey = prefs.getString('gemini_api_key') ?? '';
 
-      String transcribedText = '';
+      String? resultText;
 
       // 1순위: Groq API 시도
       if (groqApiKey.isNotEmpty) {
         try {
-          final Uri targetUri = Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions');
-          final request = http.MultipartRequest('POST', targetUri);
-          request.headers['Authorization'] = 'Bearer ' + groqApiKey;
-          request.fields['model'] = 'whisper-large-v3-turbo';
-          request.fields['language'] = 'ko';
-          request.files.add(await http.MultipartFile.fromPath('file', path));
-
-          final response = await request.send();
-          if (response.statusCode == 200) {
-            final responseBody = await http.Response.fromStream(response);
-            final jsonResponse = jsonDecode(responseBody.body);
-            transcribedText = (jsonResponse['text'] ?? '').toString().trim();
-          }
-        } catch (_) {}
+          resultText = await _callGroqApi(path, groqApiKey);
+        } catch (_) {
+          resultText = null;
+        }
       }
 
-      // 2순위: Gemini API 자동 우회 (Groq 실패 시 또는 Groq 키 미입력 시)
-      if (transcribedText.isEmpty && geminiApiKey.isNotEmpty) {
+      // 2순위 (보조): Groq 실패 또는 키 없음 시 Gemini API 시도
+      if ((resultText == null || resultText.trim().isEmpty) && geminiApiKey.isNotEmpty) {
         try {
-          final bytes = await File(path).readAsBytes();
-          final base64Audio = base64Encode(bytes);
-
-          final Uri geminiUri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiApiKey);
-          final response = await http.post(
-            geminiUri,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'contents': [
-                {
-                  'parts': [
-                    {'text': '다음 음성을 정확하게 한국어 텍스트로 받아적어주세요. 오직 변환된 텍스트만 출력하고 부연 설명이나 인사말은 절대 포함하지 마세요.'},
-                    {
-                      'inline_data': {
-                        'mime_type': 'audio/m4a',
-                        'data': base64Audio
-                      }
-                    }
-                  ]
-                }
-              ]
-            }),
-          );
-
-          if (response.statusCode == 200) {
-            final jsonResponse = jsonDecode(response.body);
-            final String rawText = jsonResponse['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
-            transcribedText = rawText.trim();
-          }
-        } catch (_) {}
+          resultText = await _callGeminiApi(path, geminiApiKey);
+        } catch (_) {
+          resultText = null;
+        }
       }
 
-      // 성공 처리 및 클립보드 복사
-      if (transcribedText.isNotEmpty) {
-        await Clipboard.setData(ClipboardData(text: transcribedText));
+      if (resultText != null && resultText.trim().isNotEmpty) {
+        final cleanText = resultText.trim();
+        await Clipboard.setData(ClipboardData(text: cleanText));
 
         final List<String> history = prefs.getStringList('history_list') ?? [];
         final nowStr = "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}";
-        history.insert(0, "[$nowStr]\n$transcribedText");
+        history.insert(0, "[$nowStr]\n$cleanText");
         if (history.length > 50) history.removeLast();
         await prefs.setStringList('history_list', history);
       }
     } catch (_) {}
+  }
+
+  Future<String?> _callGroqApi(String path, String apiKey) async {
+    final Uri targetUri = Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions');
+    final request = http.MultipartRequest('POST', targetUri);
+    request.headers['Authorization'] = 'Bearer ' + apiKey;
+    request.fields['model'] = 'whisper-large-v3-turbo';
+    request.fields['language'] = 'ko';
+    request.files.add(await http.MultipartFile.fromPath('file', path));
+
+    final response = await request.send().timeout(const Duration(seconds: 12));
+    if (response.statusCode == 200) {
+      final responseBody = await http.Response.fromStream(response);
+      final jsonResponse = jsonDecode(responseBody.body);
+      return jsonResponse['text'] as String?;
+    }
+    return null;
+  }
+
+  Future<String?> _callGeminiApi(String path, String apiKey) async {
+    final File audioFile = File(path);
+    final List<int> bytes = await audioFile.readAsBytes();
+    final String base64Audio = base64Encode(bytes);
+
+    final Uri geminiUri = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey);
+    final payload = {
+      "contents": [
+        {
+          "parts": [
+            {"text": "다음 음성을 한국어 텍스트로 받아적어주세요. 오직 변환된 텍스트만 출력하세요."},
+            {
+              "inline_data": {
+                "mime_type": "audio/m4a",
+                "data": base64Audio
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    final response = await http.post(
+      geminiUri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(payload),
+    ).timeout(const Duration(seconds: 12));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final String? text = jsonResponse['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      return text;
+    }
+    return null;
   }
 
   @override
@@ -372,6 +388,7 @@ class _FloatingMicOverlayWidgetState extends State<FloatingMicOverlayWidget> {
     return GestureDetector(
       onTap: _handleShortClick,
       onLongPress: _showOverlayOptionMenu,
+      onDoubleTap: _reCopyLastText,
       child: Container(
         width: 62,
         height: 62,
